@@ -1,21 +1,28 @@
 /// <reference types="Cypress" />
 
+let _a = () => {
+  cy.get('#privacy a')
+        .invoke('removeAttr', 'target')
+        .click()
+}
+
 describe('Central de Atendimento ao Cliente TAT', function() {
   this.beforeEach(() => {
     cy.visit('./src/index.html');
   })
 
-  it('verifica o título da aplicação', function() {
+  it('verifica o título da aplicação', () => {
     cy.title()
-      .should('be.equal', 'Central de Atendimento ao Cliente TAT');
-  });
+      .should('be.equal', 'Central de Atendimento ao Cliente TAT')
+  })
 
-  it('Aula 02 - Testes', () => {
+  it('Preenche o campo nome e verifica se está correto', () => {
     cy.get('#firstName')
       .should('be.visible')
-      .type('Teste Aula 02')
-      .should('have.value', 'Teste Aula 02');
-  });
+      .should('be.empty')
+      .type('Primeiro Nome')
+      .should('have.value', 'Primeiro Nome')
+  })
 
   it('Preenche os campos obrigatórios e envia o formulário', () => {
     const longText = 'Non et nostrud minim ipsum eu ipsum tempor. Qui eu reprehenderit non proident consequat dolor excepteur voluptate irure. Adipisicing nisi ut duis ex culpa occaecat sit veniam irure.';
@@ -61,7 +68,6 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
     cy.get('.error').should('be.visible')
     cy.get('.error > strong').should('have.text', 'Valide os campos obrigatórios!')    
-    
   })
 
   it('preenche e limpa os campos nome, sobrenome, email e telefone', () => {
@@ -94,98 +100,90 @@ describe('Central de Atendimento ao Cliente TAT', function() {
       .should('have.value', '123456789')
       .clear()
       .should('be.empty')
-
     })
-  
-  it('exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios', () => {
-    cy.contains('button', 'Enviar').click()
-    cy.get('.error').should('be.visible')
-    cy.get('.error > strong').should('have.text', 'Valide os campos obrigatórios!')
-  })
 
-  it('envia o formuário com sucesso usando um comando customizado', () => {
-    cy.fillMandatoryFieldsAndSubmit()
-    cy.get('.success').should('be.visible')
-    cy.get('.success > strong').should('have.text', 'Mensagem enviada com sucesso.')
-  })
+    it('exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios', () => {
+      cy.contains('button', 'Enviar').click()
+      cy.get('.error').should('be.visible')
+      cy.get('.error > strong').should('have.text', 'Valide os campos obrigatórios!')
+    })
 
-  it('Seleciona um produto (YouTube) por seu texto', () => {
-    cy.get('#product')
-      .select('YouTube')
-      .should('have.value', 'youtube')
-  })
+    it('envia o formuário com sucesso usando um comando customizado', () => {
+      cy.fillMandatoryFieldsAndSubmit()
+      cy.get('.success').should('be.visible')
+      cy.get('.success > strong').should('have.text', 'Mensagem enviada com sucesso.')
+    })
 
-  it('seleciona um produto (Mentoria) por seu valor (value)', () => {
-    cy.get('#product')
-      .select('mentoria')
-      .should('have.value', 'mentoria')
-  })
+    it('seleciona um produto (YouTube) por seu texto', () => {
+      cy.get('select#product')
+        .select('YouTube')
+        .should('have.value', 'youtube')
+    })
 
-  it('seleciona um produto (Blog) por seu índice', () => {
-    cy.get('#product')
-      .select(1)
-      .should('have.value', 'blog')
-  })
+    it('seleciona um produto (Mentoria) por seu valor (value)', () => {
+      cy.get('select#product')
+        .select('mentoria')
+        .should('have.value', 'mentoria')
+    })
 
-  it('marca o tipo de atendimento "Feedback"', () => {
-    cy.get('input[type="radio"][value="feedback"]')
-      .check()
-      .should('be.checked')
-      .should('have.value', 'feedback')
-  })
+    it('seleciona um produto (Blog) por seu índice', () => {
+      cy.get('select#product')
+        .select(1)
+        .should('have.value', 'blog')
+    })
 
-  it('marca cada tipo de atendimento', () => {
-    cy.get('input[type="radio"]')
-      .should('have.length', 3)
-      .each($radio => {
-        cy.wrap($radio).check()
-        cy.wrap($radio).should('be.checked')
-      })
-  })
+    it('marca o tipo de atendimento "Feedback"', () => {
+      cy.get('input[type="radio"][value="feedback"]')
+        .check()
+        .should('have.value', 'feedback')
+        .should('be.checked')
+    })
 
-  it('uncheck',() => {
-    cy.get('#email-checkbox')
-      .not('.checked')
-      .check()
-      .should('be.checked')
-      .uncheck()
-      .not('.checked')
-  })
+    it('marca cada tipo de atendimento', () => {
+      cy.get('input[type="radio"][name="atendimento-tat"]')
+        .should('have.length', 3)
+        .each($radio => cy.wrap($radio)
+                          .check()
+                          .should('be.checked'))
+    })
 
-  it('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', () => {
-    cy.get('#phone-checkbox')
-      .check()
-    cy.fillMandatoryFieldsAndSubmit()
-    cy.get('.error').should('be.visible')
-    cy.get('.error > strong').should('have.text', 'Valide os campos obrigatórios!')
-  })
+    it('marca ambos checkboxes, depois desmarca o último', () => {
+      cy.get('input[type="checkbox"]')
+        .check()
+        .last()
+        // .eq(1)
+        .uncheck()
+        .not('be.checked')
+    })
 
-  it('Seleciona um arquivo da pasta fixtures', () => {
-    cy.get('input[type="file"]#file-upload')
-      .should('not.have.value')
+    it('seleciona um arquivo da pasta fixtures', () => {
+      cy.get('input[type="file"]')
+      .should('be.empty')
       .selectFile('./cypress/fixtures/example.json')
-      .should($input => {
-        expect($input[0].files[0].name).to.equal('example.json')
-      })
-  })
+      .should(input => expect(input[0].files[0].name).to.equal('example.json'))
+    })
 
-  it('seleciona um arquivo simulando um drag-and-drop', () => {
-    cy.get('input[type="file"]#file-upload')
-      .should('not.have.value')
+    it('seleciona um arquivo simulando um drag-and-drop', () => {
+      cy.get('input[type="file"]')
+      .should('be.empty')
       .selectFile('./cypress/fixtures/example.json', {action: 'drag-drop'})
-      .should($input => {
-        expect($input[0].files[0].name).to.equal('example.json')
-      })
-  })
+      .should(input => expect(input[0].files[0].name).to.equal('example.json'))
+    })
 
-  it.only('seleciona um arquivo utilizando uma fixture para a qual foi dada um alias', () => {
-    cy.fixture('example.json').as('sampleFile')
-    cy.get('input[type="file"]#file-upload')
-      .should('not.have.value')
-      .selectFile('@sampleFile', {action: 'drag-drop'})
-      .should($input => {
-        expect($input[0].files[0].name).to.equal('example.json')
-      })
-  })
+    it('seleciona um arquivo utilizando uma fixture para a qual foi dada um alias', () => {
+      cy.fixture('example.json').as('sampleFile')
+      cy.get('input[type="file"]')
+        .selectFile('@sampleFile')
+    })
 
-});
+    it('verifica que a política de privacidade abre em outra aba sem a necessidade de um clique', () => {
+      cy.get('#privacy a')
+        .should('have.attr', 'target', '_blank')
+    })
+
+    it('acessa a página da política de privacidade removendo o target e então clicando no link', () => {
+      _a()
+    })
+
+})
+
