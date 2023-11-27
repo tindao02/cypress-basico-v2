@@ -2,7 +2,7 @@
 
 let _a = () => {
   cy.get('#privacy a')
-        .invoke('removeAttr', 'target')
+        .invoke('removeAttr', 'targe')
         .click()
 }
 
